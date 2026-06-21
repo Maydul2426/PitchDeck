@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CoreBox BD — Creaventure 4.0</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Outfit',sans-serif;background:#07090F;color:#F1F5F9;height:100vh;overflow:hidden;}
+.deck{width:100vw;height:100vh;position:relative;}
+.slide{position:absolute;inset:0;padding:52px 68px 96px;display:none;flex-direction:column;justify-content:center;}
+.slide.active{display:flex;}
+.bg-grid{position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:linear-gradient(rgba(79,142,247,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(79,142,247,.06) 1px,transparent 1px);
+  background-size:64px 64px;}
+.content{position:relative;z-index:1;height:100%;display:flex;flex-direction:column;justify-content:center;}
+.nav{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:14px;z-index:100;
+  background:rgba(13,20,33,.88);backdrop-filter:blur(12px);
+  border:0.5px solid rgba(255,255,255,.07);border-radius:40px;padding:9px 18px;}
+.nbtn{background:none;border:0.5px solid rgba(255,255,255,.12);color:#64748B;cursor:pointer;
+  width:32px;height:32px;border-radius:50%;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all .2s;}
+.nbtn:hover{color:#fff;border-color:rgba(255,255,255,.35);}
+.nbtn:disabled{opacity:.2;cursor:not-allowed;}
+.ctr{font-size:11px;color:#334155;min-width:44px;text-align:center;letter-spacing:.06em;}
+.dots{display:flex;gap:5px;}
+.dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.1);cursor:pointer;transition:all .25s;}
+.dot.active{background:#4F8EF7;width:20px;border-radius:3px;}
+.snum{position:fixed;top:22px;right:32px;font-size:10px;color:#1E2D42;z-index:100;letter-spacing:.1em;}
+.kbdh{position:fixed;bottom:82px;right:24px;font-size:10px;color:#1E2D42;display:flex;gap:5px;align-items:center;}
+.kbd{background:rgba(255,255,255,.03);border:0.5px solid rgba(255,255,255,.07);border-radius:3px;padding:2px 5px;}
+
+/* TYPOGRAPHY */
+.chip{font-size:10px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:#4F8EF7;margin-bottom:12px;}
+.h1{font-size:clamp(26px,4.2vw,54px);font-weight:900;line-height:1.05;letter-spacing:-.025em;margin-bottom:16px;}
+.sub{font-size:clamp(13px,1.3vw,16px);color:#64748B;line-height:1.65;max-width:560px;}
+.blue{color:#4F8EF7;}.teal{color:#22D3EE;}.green{color:#4ADE80;}.amber{color:#FBBF24;}.red{color:#F87171;}
+
+/* CARDS */
+.card{background:#0D1421;border:0.5px solid rgba(255,255,255,.07);border-radius:13px;padding:22px;}
+.ctitle{font-size:14px;font-weight:600;color:#E2E8F0;margin-bottom:6px;}
+.cbody{font-size:12.5px;color:#475569;line-height:1.7;}
+
+/* GRIDS */
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:13px;margin-top:28px;}
+.g2{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;margin-top:28px;}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:11px;margin-top:28px;}
+
+/* STAT */
+.stat{background:#0D1421;border:0.5px solid rgba(255,255,255,.07);border-radius:11px;padding:20px 16px;}
+.snum2{font-size:clamp(20px,2.8vw,36px);font-weight:900;letter-spacing:-.03em;margin-bottom:4px;}
+.slbl{font-size:11px;color:#475569;line-height:1.5;}
+
+/* PROBLEM CARDS */
+.pcrd{border-radius:0 12px 12px 0;background:#0D1421;padding:18px 20px;
+  border-top:.5px solid rgba(255,255,255,.04);border-right:.5px solid rgba(255,255,255,.04);border-bottom:.5px solid rgba(255,255,255,.04);}
+
+/* FINANCIAL TABLE */
+.ftbl{width:100%;border-collapse:separate;border-spacing:0 5px;font-size:12.5px;}
+.ftbl thead td{font-size:9px;color:#2D3F55;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:3px 9px;}
+.ftbl tbody tr{background:#0D1421;}
+.ftbl tbody td{padding:10px 9px;}
+.ftbl tbody td:first-child{border-radius:7px 0 0 7px;color:#94A3B8;font-weight:500;}
+.ftbl tbody td:last-child{border-radius:0 7px 7px 0;}
+
+/* YEAR CARDS */
+.ycrd{background:#0D1421;border-radius:0 0 13px 13px;padding:22px;}
+.ytag{font-size:9px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;margin-bottom:7px;}
+.ytitle{font-size:17px;font-weight:800;margin-bottom:12px;}
+.yitems{font-size:12px;color:#475569;line-height:2.2;}
+
+/* FUND TABLE */
+.fnd{background:#0D1421;border:.5px solid rgba(255,255,255,.06);border-radius:13px;padding:20px;}
+.fi{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:.5px solid rgba(255,255,255,.04);font-size:12.5px;}
+.fi:last-child{border-bottom:none;}
+.flbl{color:#64748B;}
+.famt{font-weight:700;color:#4F8EF7;}
+
+/* FLYWHEEL LIST */
+.fwstep{display:flex;align-items:center;gap:11px;padding:10px 0;border-bottom:.5px solid rgba(255,255,255,.04);font-size:13px;}
+.fwdot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+
+/* CREDENTIAL ITEM */
+.cred{display:flex;gap:14px;align-items:flex-start;padding:12px 0;border-bottom:.5px solid rgba(255,255,255,.04);}
+.cred:last-child{border-bottom:none;}
+.cred-icon{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+</style>
+</head>
+<body>
+<div class="bg-grid"></div>
+<div class="deck" id="deck">
+
+<!-- ══ SLIDE 1: COVER ══ -->
+<div class="slide active" id="s1">
+<div class="content">
+  <div style="font-size:clamp(48px,8.5vw,92px);font-weight:900;letter-spacing:-.04em;line-height:.92;margin-bottom:18px;">
+    Core<span class="blue">Box</span><br><span style="color:#1A2840;">BD</span>
+  </div>
+  <div style="font-size:clamp(13px,1.6vw,19px);color:#4A6070;font-weight:400;max-width:500px;line-height:1.55;margin-bottom:32px;">
+    Bangladesh's first dedicated ITX/SFF component platform — curated hardware, ready stock, expert-backed community commerce.
+  </div>
+  <div style="display:flex;gap:9px;flex-wrap:wrap;">
+    <span style="font-size:11px;font-weight:600;padding:5px 13px;border-radius:20px;color:#4F8EF7;border:.5px solid rgba(79,142,247,.28);background:rgba(79,142,247,.07);">ITX / SFF Hardware</span>
+    <span style="font-size:11px;font-weight:600;padding:5px 13px;border-radius:20px;color:#4F8EF7;border:.5px solid rgba(79,142,247,.28);background:rgba(79,142,247,.07);">PC Enthusiast Market</span>
+    <span style="font-size:11px;font-weight:600;padding:5px 13px;border-radius:20px;color:#2D3F55;border:.5px solid rgba(45,63,85,.4);background:rgba(45,63,85,.15);">Creaventure 4.0 · DUEDC</span>
+    <span style="font-size:11px;font-weight:600;padding:5px 13px;border-radius:20px;color:#2D3F55;border:.5px solid rgba(45,63,85,.4);background:rgba(45,63,85,.15);">Maydul Hasan · UAP</span>
+  </div>
+</div>
+</div>
+
+<!-- ══ SLIDE 2: PROBLEM ══ -->
+<div class="slide" id="s2">
+<div class="content">
+  <div class="chip">The Problem</div>
+  <div class="h1">Bangladesh's PC Builders<br>Are Stuck.<span class="blue"> The Market Isn't Serving Them.</span></div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:13px;margin-top:28px;">
+    <div class="pcrd" style="border-left:3px solid #F87171;">
+      <div class="ctitle red">⏳ 45–90 Day Wait</div>
+      <div class="cbody">Ordering SFF parts via AliExpress or Taobao means months of waiting for a single component, with no tracking or support.</div>
+    </div>
+    <div class="pcrd" style="border-left:3px solid #FBBF24;">
+      <div class="ctitle amber">💸 25–40% Premium</div>
+      <div class="cbody">International shipping, currency conversion, and agent markups make every SFF component far more expensive than it should be.</div>
+    </div>
+    <div class="pcrd" style="border-left:3px solid #475569;">
+      <div class="ctitle" style="color:#94A3B8;">🚫 Zero Local Support</div>
+      <div class="cbody">No warranty. No compatibility help. No consultation. When something breaks or doesn't fit, customers are completely on their own.</div>
+    </div>
+  </div>
+  <div style="margin-top:22px;font-size:12.5px;color:#2D3F55;padding:13px 17px;background:rgba(255,255,255,.02);border-radius:8px;border:.5px solid rgba(255,255,255,.04);">
+    Only 2 online retailers in Bangladesh serve this segment — both operating on pre-order only with very limited ready stock.
+  </div>
+</div>
+</div>
+
+<!-- ══ SLIDE 3: MARKET ══ -->
+<div class="slide" id="s3">
+<div class="content">
+  <div class="chip">Market Opportunity</div>
+  <div class="h1">A Growing Segment<br><span class="teal">Underserved by Every Retailer</span></div>
+  <div class="g4">
+    <div class="stat"><div class="snum2 blue">$24M</div><div class="slbl">Bangladesh desktop PC market (2024) — up 12% YoY, ending a 2-year decline</div></div>
+    <div class="stat"><div class="snum2 teal">11.4%</div><div class="slbl">Gaming equipment volume growth projected for 2026 in Bangladesh</div></div>
+    <div class="stat"><div class="snum2 green">$4.5B</div><div class="slbl">Global SFF motherboard market (2024), growing at 6.5% CAGR through 2033</div></div>
+    <div class="stat"><div class="snum2 amber">10%</div><div class="slbl">APAC annual SFF growth rate — fastest growing region globally</div></div>
+  </div>
+  <div style="margin-top:18px;background:rgba(79,142,247,.05);border:.5px solid rgba(79,142,247,.17);border-radius:9px;padding:14px 18px;font-size:12.5px;color:#64748B;line-height:1.8;">
+    <span class="blue" style="font-weight:700;">Structural pricing edge:</span> Bangladesh imposes only 2% customs duty on computer components (SRO 157/2011). Most competitor markets carry 10–20%. This enables retail pricing that major generalist retailers cannot match on specialty items.
+  </div>
+</div>
+</div>
+
+<!-- ══ SLIDE 4: SOLUTION ══ -->
+<div class="slide" id="s4">
+<div class="content">
+  <div class="chip">The Solution</div>
+  <div class="h1">CoreBox BD:<br><span class="blue">Curated. In Stock.</span> Expert-Backed.</div>
+  <div class="g3">
+    <div class="card">
+      <div style="font-size:24px;margin-bottom:10px;">📦</div>
+      <div class="ctitle">Ready Stock</div>
+      <div class="cbody">ITX motherboards, SFX PSUs, low-profile coolers, slim fans, GPU shrouds — available immediately. No waiting. Competitive Bangladeshi pricing for the BD builder.</div>
+    </div>
+    <div class="card">
+      <div style="font-size:24px;margin-bottom:10px;">🎯</div>
+      <div class="ctitle">Expert Curation</div>
+      <div class="cbody">Handpicked SFF ecosystem from Phanteks, Seasonic, SilverStone, Be Quiet, Noctua. The exact components BD's enthusiast community needs — not generic filler.</div>
+    </div>
+    <div class="card">
+      <div style="font-size:24px;margin-bottom:10px;">🤝</div>
+      <div class="ctitle">Community-First Service</div>
+      <div class="cbody">Build consultation, compatibility checks, and aftersales support in every transaction. Local warranty. Real expertise. People who actually build PCs.</div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ══ SLIDE 5: BUSINESS MODEL ══ -->
+<div class="slide" id="s5">
+<div class="content">
+  <div class="chip">Business Model</div>
+  <div class="h1">Three Revenue Streams,<br><span class="teal">One Ecosystem</span></div>
+  <div class="g3">
+    <div class="card" style="border-top:2.5px solid #4F8EF7;">
+      <div style="font-size:10px;font-weight:700;letter-spacing:.16em;color:#4F8EF7;margin-bottom:9px;">STREAM 01</div>
+      <div class="ctitle">Component Sales</div>
+      <div style="font-size:30px;font-weight:900;color:#4F8EF7;margin:9px 0 7px;letter-spacing:-.02em;">22–28%</div>
+      <div class="cbody">Gross margin on curated ITX/SFF inventory. SFX PSUs, boutique cases, coolers, fans, riser cables — the long-tail items major retailers don't stock.</div>
+    </div>
+    <div class="card" style="border-top:2.5px solid #22D3EE;">
+      <div style="font-size:10px;font-weight:700;letter-spacing:.16em;color:#22D3EE;margin-bottom:9px;">STREAM 02</div>
+      <div class="ctitle">Pre-built SFF Systems</div>
+      <div style="font-size:30px;font-weight:900;color:#22D3EE;margin:9px 0 7px;letter-spacing:-.02em;">30–38%</div>
+      <div class="cbody">Bangladesh's first SFF boutique PC builder. Complete systems for creators, streamers, professionals — compact performance without the DIY barrier.</div>
+    </div>
+    <div class="card" style="border-top:2.5px solid #4ADE80;">
+      <div style="font-size:10px;font-weight:700;letter-spacing:.16em;color:#4ADE80;margin-bottom:9px;">STREAM 03</div>
+      <div class="ctitle">Build Consultation</div>
+      <div style="font-size:30px;font-weight:900;color:#4ADE80;margin:9px 0 7px;letter-spacing:-.02em;">~100%</div>
+      <div class="cbody">৳1,000–2,000 per session. Part compatibility, build planning, troubleshooting. Near-zero overhead. Monetizes years of community expertise.</div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ══ SLIDE 6: UNFAIR ADVANTAGE (REVISED) ══ -->
+<div class="slide" id="s6">
+<div class="content">
+  <div class="chip">Why We Win</div>
+  <div class="h1">Most Founders Have to Find<br>Their Market. <span class="blue">We Grew Up In Ours.</span></div>
+  <div class="g2">
+    <!-- Left: Network credentials -->
+    <div style="display:flex;flex-direction:column;gap:0;background:#0D1421;border:.5px solid rgba(255,255,255,.07);border-radius:13px;padding:22px;">
+      <div style="font-size:10px;font-weight:700;letter-spacing:.18em;color:#2D3F55;text-transform:uppercase;margin-bottom:16px;">Founder Industry Network</div>
+      <div class="cred">
+        <div class="cred-icon" style="background:rgba(79,142,247,.1);border:.5px solid rgba(79,142,247,.2);">🎬</div>
+        <div>
+          <div class="ctitle">1 Year as Hardware Reviewer — Droid Head (150K+)</div>
+          <div class="cbody">Hands-on experience covering PC hardware for Bangladesh's largest tech channel. Built firsthand market knowledge of exactly what BD builders want and where the gaps are.</div>
+        </div>
+      </div>
+      <div class="cred">
+        <div class="cred-icon" style="background:rgba(74,222,128,.1);border:.5px solid rgba(74,222,128,.2);">🤝</div>
+        <div>
+          <div class="ctitle">Known by Retailers, Distributors & Product Managers</div>
+          <div class="cbody">Recognized across Bangladesh's PC ecosystem — from Multiplan to official brand distributors to Chinese manufacturers. Relationships that matter for sourcing, pricing, and channel.</div>
+        </div>
+      </div>
+      <div class="cred">
+        <div class="cred-icon" style="background:rgba(251,191,36,.1);border:.5px solid rgba(251,191,36,.2);">📡</div>
+        <div>
+          <div class="ctitle">Own Channel & Content Platform</div>
+          <div class="cbody">Active tech content creator with own community. Organic reach into the exact target audience. Zero-cost marketing channel that compounds over time.</div>
+        </div>
+      </div>
+      <div class="cred" style="padding-bottom:0;border-bottom:none;">
+        <div class="cred-icon" style="background:rgba(248,113,113,.1);border:.5px solid rgba(248,113,113,.2);">🌏</div>
+        <div>
+          <div class="ctitle">China + BD Supplier Network Already Built</div>
+          <div class="cbody">Direct WeChat relationships with Chinese manufacturers and established contact with BD authorized distributors. No cold-start logistics problem.</div>
+        </div>
+      </div>
+    </div>
+    <!-- Right: Flywheel -->
+    <div class="card" style="padding:22px;">
+      <div style="font-size:10px;font-weight:700;letter-spacing:.16em;color:#2D3F55;text-transform:uppercase;margin-bottom:16px;">The Trust Flywheel</div>
+      <div>
+        <div class="fwstep"><div class="fwdot" style="background:#4F8EF7;"></div><span>Industry reputation drives early customer trust</span></div>
+        <div class="fwstep"><div class="fwdot" style="background:#6FA4F8;"></div><span>Community presence generates organic awareness</span></div>
+        <div class="fwstep"><div class="fwdot" style="background:#22D3EE;"></div><span>Ready stock converts awareness to first purchase</span></div>
+        <div class="fwstep"><div class="fwdot" style="background:#4ADE80;"></div><span>Expert support converts purchase to loyalty</span></div>
+        <div class="fwstep" style="border-bottom:none;"><div class="fwdot" style="background:#4F8EF7;"></div><span class="blue" style="font-weight:600;">Word-of-mouth loops back ↩</span></div>
+      </div>
+      <div style="margin-top:16px;padding:12px 14px;background:rgba(79,142,247,.05);border:.5px solid rgba(79,142,247,.14);border-radius:8px;font-size:12px;color:#334155;line-height:1.7;">
+        Also: Bangladesh's 2% PC components import duty (vs. 10–20% regionally) means our pricing advantage is structural — not a temporary promotional decision.
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ══ SLIDE 7: COMPETITIVE LANDSCAPE ══ -->
+<div class="slide" id="s7">
+<div class="content">
+  <div class="chip">Competitive Landscape</div>
+  <div class="h1">One Quadrant. <span class="blue">No Competition.</span></div>
+  <div class="g2">
+    <div>
+      <div style="position:relative;padding-left:28px;padding-top:26px;">
+        <div style="position:absolute;top:4px;left:28px;right:0;text-align:center;font-size:9px;color:#1E2D42;font-weight:700;letter-spacing:.12em;text-transform:uppercase;">← Generic · · · · · · Specialized →</div>
+        <div style="position:absolute;left:2px;top:26px;bottom:0;display:flex;align-items:center;justify-content:center;">
+          <div style="font-size:9px;color:#1E2D42;font-weight:700;letter-spacing:.1em;text-transform:uppercase;writing-mode:vertical-rl;transform:rotate(180deg);white-space:nowrap;">← Limited · · · In Stock →</div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:2px;height:250px;">
+          <div style="background:#090F1C;border:.5px solid rgba(255,255,255,.04);border-radius:8px 0 0 0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:12px;gap:4px;">
+            <div style="font-size:10px;font-weight:600;color:#1E2D42;">Generic + In Stock</div>
+            <div style="font-size:9.5px;color:#162030;line-height:1.9;">Star Tech · Ryans<br>Global Brand</div>
+          </div>
+          <div style="background:rgba(79,142,247,.08);border:1.5px solid rgba(79,142,247,.32);border-radius:0 8px 0 0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:12px;gap:6px;">
+            <div style="font-size:10px;font-weight:700;color:#4F8EF7;">Specialized + In Stock</div>
+            <div style="font-size:20px;font-weight:900;color:#4F8EF7;letter-spacing:-.02em;">CoreBox BD</div>
+            <div style="font-size:8px;background:rgba(79,142,247,.16);color:#4F8EF7;padding:2px 9px;border-radius:9px;font-weight:700;letter-spacing:.06em;">ONLY PLAYER HERE</div>
+          </div>
+          <div style="background:#090F1C;border:.5px solid rgba(255,255,255,.04);border-radius:0 0 0 8px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:12px;gap:4px;">
+            <div style="font-size:10px;font-weight:600;color:#1E2D42;">Generic + Limited</div>
+            <div style="font-size:9.5px;color:#162030;line-height:1.9;">Local secondary<br>market resellers</div>
+          </div>
+          <div style="background:#090F1C;border:.5px solid rgba(255,255,255,.04);border-radius:0 0 8px 0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:12px;gap:4px;">
+            <div style="font-size:10px;font-weight:600;color:#1E2D42;">Specialized + Limited</div>
+            <div style="font-size:9.5px;color:#162030;line-height:1.9;">AliExpress · Taobao<br>Pre-order retailers</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:11px;">
+      <div class="card">
+        <div class="ctitle">Why major retailers won't enter</div>
+        <div class="cbody" style="margin-top:6px;">Star Tech and Ryans need high-volume SKUs to justify procurement. SFF is too niche for their model. They'll stock one SFX PSU. Not an ecosystem.</div>
+      </div>
+      <div class="card">
+        <div class="ctitle">Why overseas platforms can't compete</div>
+        <div class="cbody" style="margin-top:6px;">AliExpress can't offer local warranty, immediate availability, Bangladeshi pricing, or community trust. SFF product consistency is also unreliable.</div>
+      </div>
+      <div class="card" style="border-color:rgba(79,142,247,.18);background:rgba(79,142,247,.04);">
+        <div class="ctitle blue">Our moat</div>
+        <div class="cbody" style="margin-top:6px;">Industry trust built over years. Own community channel. Established supplier relationships. Specialized curation knowledge. This combination takes years to replicate.</div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ══ SLIDE 8: FINANCIALS ══ -->
+<div class="slide" id="s8">
+<div class="content">
+  <div class="chip">Financial Projections</div>
+  <div class="h1">Conservative Growth.<br><span class="green">Credible Numbers.</span></div>
+  <div class="g2">
+    <div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:14px;">
+        <div style="text-align:center;background:#0D1421;border:.5px solid rgba(255,255,255,.06);border-radius:9px;padding:13px;">
+          <div style="font-size:9px;font-weight:700;letter-spacing:.14em;color:#2D3F55;margin-bottom:5px;">YEAR 1</div>
+          <div style="font-size:22px;font-weight:900;color:#F1F5F9;letter-spacing:-.02em;">৳12L</div>
+          <div style="font-size:9px;color:#2D3F55;margin-top:3px;">Revenue</div>
+        </div>
+        <div style="text-align:center;background:#0D1421;border:.5px solid rgba(79,142,247,.22);border-radius:9px;padding:13px;">
+          <div style="font-size:9px;font-weight:700;letter-spacing:.14em;color:#2D3F55;margin-bottom:5px;">YEAR 2</div>
+          <div style="font-size:22px;font-weight:900;color:#4F8EF7;letter-spacing:-.02em;">৳27L</div>
+          <div style="font-size:9px;color:#2D3F55;margin-top:3px;">Revenue</div>
+        </div>
+        <div style="text-align:center;background:#0D1421;border:.5px solid rgba(34,211,238,.22);border-radius:9px;padding:13px;">
+          <div style="font-size:9px;font-weight:700;letter-spacing:.14em;color:#2D3F55;margin-bottom:5px;">YEAR 3</div>
+          <div style="font-size:22px;font-weight:900;color:#22D3EE;letter-spacing:-.02em;">৳50L</div>
+          <div style="font-size:9px;color:#2D3F55;margin-top:3px;">Revenue</div>
+        </div>
+      </div>
+      <div style="background:#0D1421;border:.5px solid rgba(255,255,255,.06);border-radius:11px;padding:16px 18px;">
+        <div style="display:flex;gap:18px;align-items:flex-end;height:110px;">
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;height:100%;">
+            <div style="display:flex;gap:3px;align-items:flex-end;height:100%;width:100%;">
+              <div style="flex:1;height:24%;background:#4F8EF7;border-radius:3px 3px 0 0;opacity:.9;"></div>
+              <div style="flex:1;height:6%;background:#22D3EE;border-radius:3px 3px 0 0;opacity:.8;"></div>
+              <div style="flex:1;height:4%;background:#4ADE80;border-radius:3px 3px 0 0;opacity:.8;"></div>
+            </div>
+            <div style="font-size:9px;color:#2D3F55;margin-top:4px;">Y1</div>
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;height:100%;">
+            <div style="display:flex;gap:3px;align-items:flex-end;height:100%;width:100%;">
+              <div style="flex:1;height:54%;background:#4F8EF7;border-radius:3px 3px 0 0;opacity:.9;"></div>
+              <div style="flex:1;height:15%;background:#22D3EE;border-radius:3px 3px 0 0;opacity:.8;"></div>
+              <div style="flex:1;height:11%;background:#4ADE80;border-radius:3px 3px 0 0;opacity:.8;"></div>
+            </div>
+            <div style="font-size:9px;color:#2D3F55;margin-top:4px;">Y2</div>
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;height:100%;">
+            <div style="display:flex;gap:3px;align-items:flex-end;height:100%;width:100%;">
+              <div style="flex:1;height:100%;background:#4F8EF7;border-radius:3px 3px 0 0;opacity:.9;"></div>
+              <div style="flex:1;height:28%;background:#22D3EE;border-radius:3px 3px 0 0;opacity:.8;"></div>
+              <div style="flex:1;height:22%;background:#4ADE80;border-radius:3px 3px 0 0;opacity:.8;"></div>
+            </div>
+            <div style="font-size:9px;color:#2D3F55;margin-top:4px;">Y3</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:12px;padding-top:9px;border-top:.5px solid rgba(255,255,255,.04);margin-top:3px;">
+          <div style="display:flex;align-items:center;gap:5px;font-size:9px;color:#2D3F55;"><div style="width:9px;height:9px;background:#4F8EF7;border-radius:2px;"></div>Revenue</div>
+          <div style="display:flex;align-items:center;gap:5px;font-size:9px;color:#2D3F55;"><div style="width:9px;height:9px;background:#22D3EE;border-radius:2px;"></div>Gross Profit</div>
+          <div style="display:flex;align-items:center;gap:5px;font-size:9px;color:#2D3F55;"><div style="width:9px;height:9px;background:#4ADE80;border-radius:2px;"></div>Net Profit</div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <table class="ftbl">
+        <thead><tr><td></td><td style="text-align:right;">Y1</td><td style="text-align:right;">Y2</td><td style="text-align:right;">Y3</td></tr></thead>
+        <tbody>
+          <tr><td>Revenue</td><td style="text-align:right;font-weight:600;">৳12L</td><td style="text-align:right;font-weight:600;color:#4F8EF7;">৳27L</td><td style="text-align:right;font-weight:600;color:#22D3EE;">৳50L</td></tr>
+          <tr><td style="height:5px;background:transparent!important;"></td></tr>
+          <tr><td>Gross Profit</td><td style="text-align:right;font-weight:600;">৳3L</td><td style="text-align:right;font-weight:600;color:#4F8EF7;">৳7.5L</td><td style="text-align:right;font-weight:600;color:#22D3EE;">৳14L</td></tr>
+          <tr><td style="height:5px;background:transparent!important;"></td></tr>
+          <tr><td>Net Profit</td><td style="text-align:right;font-weight:600;">৳2.2L</td><td style="text-align:right;font-weight:600;color:#4F8EF7;">৳5.5L</td><td style="text-align:right;font-weight:600;color:#22D3EE;">৳11L</td></tr>
+          <tr><td style="height:5px;background:transparent!important;"></td></tr>
+          <tr><td>Gross Margin</td><td style="text-align:right;font-weight:600;">25%</td><td style="text-align:right;font-weight:600;color:#4F8EF7;">27%</td><td style="text-align:right;font-weight:600;color:#22D3EE;">28%</td></tr>
+        </tbody>
+      </table>
+      <div style="background:rgba(74,222,128,.05);border:.5px solid rgba(74,222,128,.18);border-radius:9px;padding:12px 15px;font-size:12.5px;color:#4ADE80;line-height:1.7;">
+        <strong>Breakeven: Month 25</strong> at base margin. Accelerates to Month 18 as margins improve with pre-built systems in Year 2.
+      </div>
+      <div style="background:rgba(79,142,247,.04);border:.5px solid rgba(79,142,247,.13);border-radius:9px;padding:12px 15px;font-size:11.5px;color:#4A6070;line-height:1.7;">
+        Initial investment: ৳5 Lakh. Year 1 operations home-based. Organic marketing via community network.
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ══ SLIDE 9: ROADMAP ══ -->
+<div class="slide" id="s9">
+<div class="content">
+  <div class="chip">The Roadmap</div>
+  <div class="h1">From Importer to<br><span class="blue">Official Distributor</span> in 3 Years</div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:28px;">
+    <div>
+      <div style="height:3px;border-radius:2px 2px 0 0;background:rgba(79,142,247,.5);"></div>
+      <div class="ycrd" style="border:.5px solid rgba(79,142,247,.18);">
+        <div class="ytag blue">YEAR 1 — LAUNCH</div>
+        <div class="ytitle">Launch &amp; Prove</div>
+        <div class="yitems">✓ Online store — Instagram, Facebook<br>✓ First ৳3L inventory batch<br>✓ China sourcing trip, supplier contacts<br>✓ Community sell-through<br>✓ BillingMaster inventory system<br>✓ Target: <strong class="blue">৳12L revenue</strong></div>
+      </div>
+    </div>
+    <div>
+      <div style="height:3px;border-radius:2px 2px 0 0;background:rgba(34,211,238,.5);"></div>
+      <div class="ycrd" style="border:.5px solid rgba(34,211,238,.18);">
+        <div class="ytag teal">YEAR 2 — SCALE</div>
+        <div class="ytitle">Scale &amp; Diversify</div>
+        <div class="yitems">✓ Pre-built SFF systems launched<br>✓ Expanded SKU: boutique cases, cable kits<br>✓ Ecommerce website live<br>✓ Influencer + tech event marketing<br>✓ Formal brand distributor talks begin<br>✓ Target: <strong class="teal">৳27L revenue</strong></div>
+      </div>
+    </div>
+    <div>
+      <div style="height:3px;border-radius:2px 2px 0 0;background:rgba(74,222,128,.5);"></div>
+      <div class="ycrd" style="border:.5px solid rgba(74,222,128,.18);">
+        <div class="ytag green">YEAR 3 — OWN IT</div>
+        <div class="ytitle">Dominate &amp; Partner</div>
+        <div class="yitems">✓ Official dealership: 2–3 SFF brands<br>✓ BD's only Phanteks / SilverStone dealer<br>✓ Physical retail presence or partner<br>✓ B2B: corporate workstation segment<br>✓ Consultation scaled as a service<br>✓ Target: <strong class="green">৳50L revenue</strong></div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ══ SLIDE 10: ASK ══ -->
+<div class="slide" id="s10">
+<div class="content">
+  <div class="chip">Investment Ask</div>
+  <div class="h1"><span class="blue">৳5 Lakh.</span> 20% Equity.<br>One Clear Opportunity.</div>
+  <div class="g2">
+    <div class="fnd">
+      <div style="font-size:9px;font-weight:700;letter-spacing:.16em;color:#2D3F55;margin-bottom:12px;text-transform:uppercase;">Use of Funds</div>
+      <div class="fi"><span class="flbl">📦 Inventory — SFX PSUs, coolers, fans, cases</span><span class="famt">৳3L</span></div>
+      <div class="fi"><span class="flbl">✈ China sourcing trip + shipping + customs</span><span class="famt">৳1L</span></div>
+      <div class="fi"><span class="flbl">📣 Community events + content marketing</span><span class="famt">৳50K</span></div>
+      <div class="fi"><span class="flbl">⚙ Ops setup — packaging, billing system</span><span class="famt">৳50K</span></div>
+      <div style="margin-top:12px;padding-top:11px;border-top:.5px solid rgba(255,255,255,.05);font-size:11.5px;color:#2D3F55;line-height:1.6;">
+        60% of capital directly into sellable inventory.<br>Zero wasted on fixed overhead in Year 1.
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:11px;">
+      <div style="background:rgba(79,142,247,.05);border:.5px solid rgba(79,142,247,.16);border-radius:12px;padding:20px;">
+        <div style="font-size:9px;font-weight:700;letter-spacing:.16em;color:#2D3F55;margin-bottom:12px;text-transform:uppercase;">Investor Return (20% Equity)</div>
+        <div style="display:flex;flex-direction:column;gap:0;">
+          <div style="display:flex;justify-content:space-between;font-size:12.5px;padding:9px 0;border-bottom:.5px solid rgba(255,255,255,.04);">
+            <span style="color:#64748B;">Year 3 net profit share</span>
+            <span style="font-weight:700;color:#4ADE80;">৳2.2L/year</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:12.5px;padding:9px 0;border-bottom:.5px solid rgba(255,255,255,.04);">
+            <span style="color:#64748B;">3-year cumulative return</span>
+            <span style="font-weight:700;color:#4F8EF7;">৳5–6L</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:12.5px;padding:9px 0;">
+            <span style="color:#64748B;">Upside if official distributorship</span>
+            <span style="font-weight:700;color:#FBBF24;">5–10× mult.</span>
+          </div>
+        </div>
+      </div>
+      <div style="background:#0D1421;border:.5px solid rgba(255,255,255,.07);border-radius:12px;padding:20px;">
+        <div style="font-size:9px;font-weight:700;letter-spacing:.16em;color:#2D3F55;margin-bottom:12px;text-transform:uppercase;">The Founder</div>
+        <div style="font-size:15px;font-weight:700;color:#E2E8F0;margin-bottom:5px;">Maydul Hasan</div>
+        <div style="font-size:11.5px;color:#475569;line-height:2;">
+          BBA — University of Asia Pacific<br>
+          1-year hardware reviewer at <strong style="color:#94A3B8;">Droid Head</strong> (150K+ channel)<br>
+          Known by BD retailers, distributors &amp; product managers<br>
+          Established China supplier + BD distributor network<br>
+          Own tech content channel &amp; community presence
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+</div><!-- /deck -->
+
+<div class="nav" id="navbar">
+  <button class="nbtn" id="pb" onclick="go(-1)" disabled>&#8592;</button>
+  <div class="dots" id="dotc"></div>
+  <span class="ctr" id="ctr">1 / 10</span>
+  <button class="nbtn" id="nb" onclick="go(1)">&#8594;</button>
+</div>
+<div class="snum" id="sn">01 / 10</div>
+<div class="kbdh"><span class="kbd">←</span><span class="kbd">→</span><span style="color:#1A2535;">navigate</span></div>
+
+<script>
+(function(){
+  var sl=document.querySelectorAll('.slide'),dc=document.getElementById('dotc'),
+    ctr=document.getElementById('ctr'),sn=document.getElementById('sn'),
+    pb=document.getElementById('pb'),nb=document.getElementById('nb'),
+    cur=0,tot=sl.length;
+  for(var i=0;i<tot;i++){(function(idx){
+    var d=document.createElement('div');
+    d.className='dot'+(idx===0?' active':'');
+    d.onclick=function(){gT(idx);};
+    dc.appendChild(d);
+  })(i);}
+  function gT(n){sl[cur].classList.remove('active');dc.children[cur].classList.remove('active');
+    cur=Math.max(0,Math.min(n,tot-1));sl[cur].classList.add('active');dc.children[cur].classList.add('active');
+    ctr.textContent=(cur+1)+' / '+tot;sn.textContent=p(cur+1)+' / '+p(tot);
+    pb.disabled=cur===0;nb.disabled=cur===tot-1;}
+  function p(n){return n<10?'0'+n:''+n;}
+  function go(d){gT(cur+d);}window.go=go;
+  document.addEventListener('keydown',function(e){
+    if(e.key==='ArrowRight'||e.key==='ArrowDown')go(1);
+    if(e.key==='ArrowLeft'||e.key==='ArrowUp')go(-1);});
+})();
+</script>
+</body>
+</html>
